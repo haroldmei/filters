@@ -2,7 +2,7 @@
 
 Multiple Object Tracking using various Bayesian filters.
 
-Progress: shuffled the detected objects, object id association is supported only for KalmanFilter at the moment.  
+Progress: shuffled the detected objects, object id association is supported. Example:  
 python show_detections.py -t sliding  
 python show_detections.py -t collide  
 
