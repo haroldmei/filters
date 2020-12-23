@@ -1,7 +1,10 @@
 ## Tracking tech test sample code
 
-This package contains sample code for the Nirovision tracking tech test.
-You can use or modify any of this code when working on the tech test.
+Multiple Object Tracking using various Bayesian filters.
+
+Progress: shuffled the detected objects, object id association is supported only for KalmanFilter at the moment.  
+python show_detections.py -t sliding  
+python show_detections.py -t collide  
 
 The `detections.py` file contains some example sets of detections that
 you can use to test your tracking implementation.
