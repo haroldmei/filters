@@ -132,13 +132,42 @@ def get_nonlinear_tracker():
     ukf.Q[2:4, 2:4] = Q_discrete_white_noise(2, dt=1, var=0.02)
     return ukf
 
+
+#######################################################################################
+# for sample0~7 (nonlinear dynamic, could also consider other filters.)
+def f_cv1(x, dt):
+    """ state transition function for a 
+    constant velocity aircraft"""
+    
+    F = np.array([[1, dt, 0.5*dt**2,    0,  0,  0],
+                  [0,  1, dt,           0,  0,  0],
+                  [0,  0, 1,            0,  0,  0],
+                  [0,  0, 0,            1,  dt, 0.5*dt**2],
+                  [0,  0, 0,            0,  1,  dt],
+                  [0,  0, 0,            0,  0,  1]])
+    return F @ x
+
+def h_cv1(x):
+    return x[[0, 3]]
+
+def get_nonlinear_tracker1():
+
+    dt = IMSHOW_SLEEP_TIME/1000 # time step
+
+    sigmas = MerweScaledSigmaPoints(6, alpha=.1, beta=2., kappa=1.)
+    ukf = UKF(dim_x=6, dim_z=2, fx=f_cv1, hx=h_cv1, dt=dt, points=sigmas)
+    ukf.x = np.array([0., 0., 0., 0., 0., 0.])
+    ukf.R = np.diag([0.09, 0.09]) 
+    ukf.Q[0:2, 0:2] = Q_discrete_white_noise(2, dt=1, var=0.02)
+    ukf.Q[2:4, 2:4] = Q_discrete_white_noise(2, dt=1, var=0.02)
+    return ukf
+
+
 def get_tracker(detection_type):
     if detection_type == 'circle':
-        #return FirstOrderKF(1, 0.03, IMSHOW_SLEEP_TIME/1000)
         return get_nonlinear_tracker()
     elif detection_type == 'circle-accel':
-        #return SecondOrderKF(6., 0.02, IMSHOW_SLEEP_TIME/1000)
-        return get_nonlinear_tracker()
+        return get_nonlinear_tracker1()
     elif detection_type == 'sliding' or detection_type == 'collide':
         return get_linear_tracker()
     else:
@@ -183,7 +212,7 @@ def draw_detections_inplace(
         if detection_type == 'circle-accel':
             tracker.update([x, y])
             m = tracker.x
-            center_coordinates = (int(m[0]), int(m[2]))
+            center_coordinates = (int(m[0]), int(m[3]))
         elif detection_type == 'sliding' or detection_type == 'collide':
             tracker.update([x, y])
             m = np.dot(tracker.H, tracker.x)
