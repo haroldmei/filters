@@ -19,6 +19,8 @@ from detections import Detection, DETECTIONS_FACTORIES
 
 Color = Tuple[int, int, int]
 
+MAX_OBJECTS = 5
+
 GREEN = (0, 255, 0)
 BLUE = (255, 0, 0)
 RED = (0, 0, 255)
@@ -156,7 +158,7 @@ def draw_detections_inplace(
     #r = np.linalg.norm(centers[0]-orig)
     #print(r, orig, detections)
 
-    for detection, tracker in zip(detections, trackers):
+    for detection in detections:
         
         x_min, y_min, x_max, y_max = detection.box
 
@@ -164,6 +166,12 @@ def draw_detections_inplace(
         x = (x_min + x_max) / 2.0
         y = (y_min + y_max) / 2.0
 
+        p = []
+        for tr in trackers:
+            p.append(tr.log_likelihood_of([x,y]))
+
+        tracker = trackers[np.argmax(p)]
+        print(np.argmax(p))
         tracker.predict()
         if detection_type == 'circle-accel':
             tracker.update([x, y])
@@ -234,9 +242,8 @@ def main(detection_type):
     current_frame = np.empty_like(background_image)
     detections_sample = DETECTIONS_FACTORIES[detection_type](background_image)
 
-    num = len(detections_sample.detections)
     trackers = []
-    for i in range(num):
+    for i in range(MAX_OBJECTS):
         trackers.append(get_tracker(detection_type))
 
     for frame_index, detections in enumerate(detections_sample.detections):
