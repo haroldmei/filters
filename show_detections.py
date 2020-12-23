@@ -5,7 +5,7 @@ from typing import Callable, Iterable, Tuple, Optional, List
 import click
 import cv2
 import numpy as np
-
+import random
 import matplotlib.pyplot as plt
 
 from numpy.random import randn
@@ -241,7 +241,7 @@ def main(detection_type):
 
     for frame_index, detections in enumerate(detections_sample.detections):
         current_frame[...] = background_image
-
+        random.shuffle(detections)
         draw_detections_inplace(
             current_frame,
             detection_type,
