@@ -2,7 +2,11 @@
 
 Multiple Object Tracking using various Bayesian filters.
 
-Progress: shuffled the detected objects, object id association is supported. Example:  
+Shuffled the detected objects, object id association is supported.
+Second order state is supported ('circle-accel').   
+
+python show_detections.py -t circle  
+python show_detections.py -t circle-accel    
 python show_detections.py -t sliding  
 python show_detections.py -t collide  
 
