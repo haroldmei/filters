@@ -2,6 +2,7 @@
 """
 from typing import Callable, Iterable, Tuple, Optional, List
 
+import sys
 import click
 import cv2
 import numpy as np
@@ -14,6 +15,7 @@ from filterpy.kalman import KalmanFilter
 from filterpy.kalman import UnscentedKalmanFilter as UKF
 from filterpy.kalman import unscented_transform, MerweScaledSigmaPoints
 from filterpy.common import Q_discrete_white_noise
+from filterpy.stats import logpdf
 
 from detections import Detection, DETECTIONS_FACTORIES
 
@@ -142,6 +144,16 @@ def get_tracker(detection_type):
     else:
         return get_nonlinear_tracker()
 
+def log_likelihood_of(kf, z):
+        """
+        log likelihood of the measurement `z`. This should only be called
+        after a call to update(). Calling after predict() will yield an
+        incorrect result."""
+
+        if z is None:
+            return kf.log(sys.float_info.min)
+        return logpdf(z, kf.z, kf.S)
+
 #######################################################################################
 def draw_detections_inplace(
     image_arr: np.ndarray,
@@ -153,11 +165,6 @@ def draw_detections_inplace(
     get_color_for_expected_id: Optional[Callable[[int], Color]] = None,
 ) -> np.ndarray:
 
-    #centers = np.array([[(detection.box[0] + detection.box[2])/2.0, (detection.box[1] + detection.box[3])/2.0] for detection in detections])
-    #orig = np.average(centers, axis=0)
-    #r = np.linalg.norm(centers[0]-orig)
-    #print(r, orig, detections)
-
     for detection in detections:
         
         x_min, y_min, x_max, y_max = detection.box
@@ -168,10 +175,10 @@ def draw_detections_inplace(
 
         p = []
         for tr in trackers:
-            p.append(tr.log_likelihood_of([x,y]))
+            p.append(log_likelihood_of(tr, [x,y]))
 
         tracker = trackers[np.argmax(p)]
-        print(np.argmax(p))
+        
         tracker.predict()
         if detection_type == 'circle-accel':
             tracker.update([x, y])
