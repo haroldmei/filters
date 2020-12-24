@@ -198,7 +198,7 @@ def draw_detections_inplace(
         
         x_min, y_min, x_max, y_max = detection.box
 
-        center_coordinates = (0, 0)
+        center_coordinates = None
         x = (x_min + x_max) / 2.0
         y = (y_min + y_max) / 2.0
 
@@ -208,20 +208,11 @@ def draw_detections_inplace(
 
         tracker = trackers[np.argmax(p)]
         
+        # this is actually pretty simple now.
         tracker.predict()
-        if detection_type == 'circle-accel':
-            tracker.update([x, y])
-            m = tracker.x
-            center_coordinates = (int(m[0]), int(m[3]))
-        elif detection_type == 'sliding' or detection_type == 'collide':
-            tracker.update([x, y])
-            m = np.dot(tracker.H, tracker.x)
-            center_coordinates = (int(m[0][0]), int(m[1][0]))
-        else: 
-            tracker.update([x, y])
-            m = tracker.x
-            center_coordinates = (int(m[0]), int(m[2]))
-        
+        tracker.update([x, y])
+        center_coordinates = (int(tracker.z[0]), int(tracker.z[1]))
+
         if get_color_for_expected_id and detection.expected_id is not None:
             color = get_color_for_expected_id(detection.expected_id)
         else:
@@ -235,13 +226,14 @@ def draw_detections_inplace(
         )
 
         # use circle to track the rectangles. For simplicity, use the same radius value.
-        cv2.circle(
-            image_arr, 
-            center_coordinates, 
-            radius = 70, 
-            color = color, 
-            thickness = TRACKER_THICKNESS
-        )
+        if center_coordinates:
+            cv2.circle(
+                image_arr, 
+                center_coordinates, 
+                radius = 70, 
+                color = color, 
+                thickness = TRACKER_THICKNESS
+            )
         
     return image_arr
 
