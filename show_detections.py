@@ -206,12 +206,13 @@ def draw_detections_inplace(
         for tr in trackers:
             p.append(log_likelihood_of(tr, [x,y]))
 
+        # this is actually pretty simple now. tracker comes one frame late
         tracker = trackers[np.argmax(p)]
-        
-        # this is actually pretty simple now.
+        if tracker.z[0]:
+            center_coordinates = (int(tracker.z[0]), int(tracker.z[1]))
+
         tracker.predict()
         tracker.update([x, y])
-        center_coordinates = (int(tracker.z[0]), int(tracker.z[1]))
 
         if get_color_for_expected_id and detection.expected_id is not None:
             color = get_color_for_expected_id(detection.expected_id)
